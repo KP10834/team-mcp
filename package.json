@@ -1,0 +1,32 @@
+{
+  "name": "@kp10834/team-mcp",
+  "version": "1.0.0",
+  "description": "Team-shared MCP servers (EVM, Kafka, Redis, Slack, ELK, Grafana, etc.)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start:evm": "node evm-mcp/index.js",
+    "start:kafka": "node kafka-mcp/index.js",
+    "start:redis": "node redis-mcp/index.js",
+    "start:slack": "node slack-mcp/index.js",
+    "start:elk": "node elk-mcp/index.js",
+    "start:grafana": "node grafana-mcp/index.js",
+    "start:kibana": "node kibana-mcp/index.js",
+    "start:sqlite": "node sqlite-mcp/index.js",
+    "start:dooray": "node dooray-mcp/index.js",
+    "start:github-wiki": "node github-wiki-mcp/index.js",
+    "start:cross-impact": "node cross-impact-mcp/index.js",
+    "start:qa": "node qa-mcp/index.js",
+    "start:topic-gen": "node topic-gen-mcp/index.js",
+    "start:workflow": "node workflow-mcp/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@slack/web-api": "^7.8.0",
+    "better-sqlite3": "11.10.0",
+    "ethers": "6.16.0",
+    "ioredis": "5.10.0",
+    "kafkajs": "2.2.4",
+    "zod": "^3.23.0"
+  }
+}
