@@ -44,9 +44,9 @@ async function esProxy(esPath, method = "GET", body) {
 
 // ─── EVM config ────────────────────────────────────────────────
 const CHAIN_CONFIG = {
-  "11155111": { name: "Sepolia", rpc: "https://rpc.sepolia.org" },
-  "43113": { name: "Fuji", rpc: "https://api.avax-test.network/ext/bc/C/rpc" },
-  "56357": { name: "KCP", rpc: "https://rpc.kcp.world" },
+  "11155111": { name: "Sepolia", rpc: process.env.RPC_SEPOLIA || "http://10.225.10.93:8545" },
+  "43113": { name: "Fuji", rpc: process.env.RPC_FUJI || "http://10.225.10.92:9650/ext/bc/C/rpc" },
+  "56357": { name: "KCP", rpc: process.env.RPC_KCP || "" },
 };
 
 const RPC_TIMEOUT = parseInt(process.env.RPC_TIMEOUT_MS || "10000", 10);
