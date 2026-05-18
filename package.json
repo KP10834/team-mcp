@@ -18,7 +18,8 @@
     "start:cross-impact": "node cross-impact-mcp/index.js",
     "start:qa": "node qa-mcp/index.js",
     "start:topic-gen": "node topic-gen-mcp/index.js",
-    "start:workflow": "node workflow-mcp/index.js"
+    "start:workflow": "node workflow-mcp/index.js",
+    "start:rca": "node rca-mcp/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
