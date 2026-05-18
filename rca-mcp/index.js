@@ -144,14 +144,16 @@ const server = new McpServer({ name: "rca-mcp", version: "1.0.0" });
 // ─── Tool 1: rca_timeline ──────────────────────────────────────
 server.tool(
   "rca_timeline",
-  "request_id 또는 txHash로 전 서비스 로그를 시간순 타임라인으로 조합",
+  "request_id 또는 txHash의 에러 관련 로그를 시간순 타임라인으로 조합. around로 특정 시각 기준 조회 가능.",
   {
     request_id: z.string().optional().describe("요청 ID"),
     tx_hash: z.string().optional().describe("트랜잭션 해시"),
-    minutes: z.number().default(30).describe("조회 범위 (최근 N분, 기본 30)"),
-    size: z.number().default(100).describe("최대 조회 건수 (기본 100)"),
+    around: z.string().optional().describe("기준 시각 (ISO8601). 없으면 now 기준"),
+    minutes: z.number().default(5).describe("기준 시각 ±N분 (기본 5)"),
+    error_only: z.boolean().default(false).describe("true면 ERROR/WARN만 필터"),
+    size: z.number().default(50).describe("최대 조회 건수 (기본 50)"),
   },
-  async ({ request_id, tx_hash, minutes, size }) => {
+  async ({ request_id, tx_hash, around, minutes, error_only, size }) => {
     if (!request_id && !tx_hash) {
       return { content: [{ type: "text", text: "ERROR: request_id 또는 tx_hash 중 하나 이상 필수" }] };
     }
@@ -169,19 +171,57 @@ server.tool(
         should.push({ match_phrase: { message: tx_hash } });
       }
 
-      const body = {
-        size: Math.min(size, 500),
-        sort: [{ "@timestamp": "asc" }],
-        _source: SOURCE_FIELDS,
-        query: {
+      // Phase A: if no 'around', find the event timestamp first
+      let anchor = around;
+      if (!anchor) {
+        const probe = {
+          size: 1,
+          sort: [{ "@timestamp": "desc" }],
+          _source: ["@timestamp"],
+          query: { bool: { should, minimum_should_match: 1 } },
+        };
+        const probeData = await esProxy(`${LOG_INDEX_PATTERN}/_search`, "POST", probe);
+        const probeHit = probeData.hits?.hits?.[0];
+        if (probeHit) {
+          anchor = probeHit._source["@timestamp"];
+        }
+      }
+
+      // Build time range around anchor (or fallback to now-minutes)
+      let timeRange;
+      if (anchor) {
+        const anchorMs = new Date(anchor).getTime();
+        const gte = new Date(anchorMs - minutes * 60000).toISOString();
+        const lte = new Date(anchorMs + minutes * 60000).toISOString();
+        timeRange = { range: { "@timestamp": { gte, lte } } };
+      } else {
+        timeRange = { range: { "@timestamp": { gte: `now-${minutes}m`, lte: "now" } } };
+      }
+
+      const must = [timeRange];
+
+      // error_only filter
+      if (error_only) {
+        must.push({
           bool: {
-            must: [
-              { range: { "@timestamp": { gte: `now-${minutes}m`, lte: "now" } } },
+            should: [
+              { term: { "log.level": "error" } },
+              { term: { "log.level": "ERROR" } },
+              { term: { "log.level": "warn" } },
+              { term: { "log.level": "WARN" } },
+              { term: { "log.level": "fatal" } },
+              { term: { "log.level": "FATAL" } },
             ],
-            should,
             minimum_should_match: 1,
           },
-        },
+        });
+      }
+
+      const body = {
+        size: Math.min(size, 200),
+        sort: [{ "@timestamp": "asc" }],
+        _source: SOURCE_FIELDS,
+        query: { bool: { must, should, minimum_should_match: 1 } },
       };
 
       const data = await esProxy(`${LOG_INDEX_PATTERN}/_search`, "POST", body);
@@ -189,12 +229,14 @@ server.tool(
       const total = data.hits?.total?.value ?? hits.length;
 
       if (!hits.length) {
-        return { content: [{ type: "text", text: `결과 없음 (identifier: ${identifier}, ${minutes}분)` }] };
+        return { content: [{ type: "text", text: `결과 없음 (identifier: ${identifier}, ±${minutes}분${anchor ? `, anchor=${anchor}` : ""})` }] };
       }
 
       const timeline = formatTimeline(hits);
+      const anchorNote = anchor ? `\n**기준 시각**: ${anchor} (±${minutes}분)` : `\n**범위**: 최근 ${minutes}분`;
+      const filterNote = error_only ? " [ERROR/WARN only]" : "";
       return {
-        content: [{ type: "text", text: `## RCA Timeline (${hits.length}/${total}건, ${minutes}분)\n**식별자**: ${identifier}\n\n${timeline}` }],
+        content: [{ type: "text", text: `## RCA Timeline (${hits.length}/${total}건)${filterNote}\n**식별자**: ${identifier}${anchorNote}\n\n${timeline}` }],
       };
     } catch (e) {
       return { content: [{ type: "text", text: `ERROR: ${e.message}` }] };
@@ -205,24 +247,46 @@ server.tool(
 // ─── Tool 2: rca_compare ───────────────────────────────────────
 server.tool(
   "rca_compare",
-  "실패 request_id와 동일 시간대 성공 건을 자동 비교",
+  "실패 request_id와 동일 시간대 성공 건을 자동 비교. 에러 로그 차이에 집중.",
   {
     failed_id: z.string().describe("실패한 요청의 request_id"),
     success_id: z.string().optional().describe("성공한 요청의 request_id (생략 시 자동 탐색)"),
-    minutes: z.number().default(10).describe("비교 시간 범위 (기본 10분)"),
+    around: z.string().optional().describe("기준 시각 (ISO8601). 없으면 자동 탐색"),
+    minutes: z.number().default(10).describe("기준 시각 ±N분 (기본 10)"),
   },
-  async ({ failed_id, success_id, minutes }) => {
+  async ({ failed_id, success_id, around, minutes }) => {
     try {
+      // Find anchor time from failed request
+      let anchor = around;
+      if (!anchor) {
+        const probe = {
+          size: 1,
+          sort: [{ "@timestamp": "desc" }],
+          _source: ["@timestamp"],
+          query: { bool: { should: [{ match: { requestId: failed_id } }, { match_phrase: { message: failed_id } }], minimum_should_match: 1 } },
+        };
+        const probeData = await esProxy(`${LOG_INDEX_PATTERN}/_search`, "POST", probe);
+        const probeHit = probeData.hits?.hits?.[0];
+        if (probeHit) anchor = probeHit._source["@timestamp"];
+      }
+
+      // Build time range
+      let timeRange;
+      if (anchor) {
+        const anchorMs = new Date(anchor).getTime();
+        timeRange = { range: { "@timestamp": { gte: new Date(anchorMs - minutes * 60000).toISOString(), lte: new Date(anchorMs + minutes * 60000).toISOString() } } };
+      } else {
+        timeRange = { range: { "@timestamp": { gte: `now-${minutes * 2}m`, lte: "now" } } };
+      }
+
       // Step 1: fetch failed timeline
       const failedQuery = {
-        size: 200,
+        size: 100,
         sort: [{ "@timestamp": "asc" }],
         _source: SOURCE_FIELDS,
         query: {
           bool: {
-            must: [
-              { range: { "@timestamp": { gte: `now-${minutes}m`, lte: "now" } } },
-            ],
+            must: [timeRange],
             should: [
               { match: { requestId: failed_id } },
               { match_phrase: { message: failed_id } },
@@ -236,24 +300,18 @@ server.tool(
       const failedHits = failedData.hits?.hits || [];
 
       if (!failedHits.length) {
-        return { content: [{ type: "text", text: `실패 요청 '${failed_id}' 로그 없음 (${minutes}분)` }] };
+        return { content: [{ type: "text", text: `실패 요청 '${failed_id}' 로그 없음 (±${minutes}분)` }] };
       }
 
       // Step 2: resolve success_id if not provided
       let resolvedSuccessId = success_id;
       if (!resolvedSuccessId) {
-        // Find other requestIds in the same time window
         const aggsQuery = {
           size: 0,
           query: {
             bool: {
-              must: [
-                { range: { "@timestamp": { gte: `now-${minutes}m`, lte: "now" } } },
-                { exists: { field: "requestId" } },
-              ],
-              must_not: [
-                { term: { "requestId.keyword": failed_id } },
-              ],
+              must: [timeRange, { exists: { field: "requestId" } }],
+              must_not: [{ term: { "requestId.keyword": failed_id } }],
             },
           },
           aggs: {
@@ -264,13 +322,10 @@ server.tool(
                   filter: {
                     bool: {
                       should: [
-                        { match: { "log.level": "error" } },
-                        { match: { "log.level": "ERROR" } },
-                        { match: { "log.level": "fatal" } },
-                        { match: { "log.level": "FATAL" } },
-                        { match_phrase: { message: "error" } },
-                        { match_phrase: { message: "exception" } },
-                        { match_phrase: { message: "fail" } },
+                        { term: { "log.level": "error" } },
+                        { term: { "log.level": "ERROR" } },
+                        { term: { "log.level": "fatal" } },
+                        { term: { "log.level": "FATAL" } },
                       ],
                     },
                   },
@@ -285,25 +340,22 @@ server.tool(
 
         if (!buckets.length) {
           return {
-            content: [{ type: "text", text: `## 비교 실패\n동일 시간대에 다른 requestId를 찾을 수 없음 (${minutes}분).\n\n### 실패 타임라인 (${failed_id})\n${formatTimeline(failedHits)}` }],
+            content: [{ type: "text", text: `## 비교 실패\n동일 시간대에 다른 requestId를 찾을 수 없음.\n\n### 실패 건 에러 로그 (${failed_id})\n${formatTimeline(failedHits.filter(h => { const lvl = (extractField(h._source || {}, "log.level") || "").toLowerCase(); return lvl === "error" || lvl === "warn" || lvl === "fatal"; }))}` }],
           };
         }
 
-        // Pick the one with fewest error-related messages
         buckets.sort((a, b) => a.error_count.doc_count - b.error_count.doc_count);
         resolvedSuccessId = buckets[0].key;
       }
 
       // Step 3: fetch success timeline
       const successQuery = {
-        size: 200,
+        size: 100,
         sort: [{ "@timestamp": "asc" }],
         _source: SOURCE_FIELDS,
         query: {
           bool: {
-            must: [
-              { range: { "@timestamp": { gte: `now-${minutes}m`, lte: "now" } } },
-            ],
+            must: [timeRange],
             should: [
               { match: { requestId: resolvedSuccessId } },
               { match_phrase: { message: resolvedSuccessId } },
@@ -316,25 +368,29 @@ server.tool(
       const successData = await esProxy(`${LOG_INDEX_PATTERN}/_search`, "POST", successQuery);
       const successHits = successData.hits?.hits || [];
 
-      // Step 4: format side-by-side
-      const failedTimeline = formatTimeline(failedHits);
-      const successTimeline = successHits.length
-        ? formatTimeline(successHits)
-        : "로그 없음";
+      // Step 4: format — show errors first, then full timeline
+      const failedErrors = failedHits.filter(h => {
+        const lvl = (extractField(h._source || {}, "log.level") || "").toLowerCase();
+        return lvl === "error" || lvl === "warn" || lvl === "fatal";
+      });
 
       const autoNote = success_id ? "" : ` (자동 탐색됨)`;
       return {
         content: [{
           type: "text",
           text: [
-            `## RCA Compare (${minutes}분)`,
+            `## RCA Compare`,
+            anchor ? `**기준 시각**: ${anchor} (±${minutes}분)` : "",
             "",
-            `### FAILED: ${failed_id} (${failedHits.length}건)`,
-            failedTimeline,
+            `### FAILED 에러 요약: ${failed_id} (에러 ${failedErrors.length}건 / 전체 ${failedHits.length}건)`,
+            failedErrors.length ? formatTimeline(failedErrors) : "(에러 로그 없음 — 전체 타임라인 참고)",
+            "",
+            `### FAILED 전체 타임라인`,
+            formatTimeline(failedHits),
             "",
             `### SUCCESS: ${resolvedSuccessId}${autoNote} (${successHits.length}건)`,
-            successTimeline,
-          ].join("\n"),
+            successHits.length ? formatTimeline(successHits) : "로그 없음",
+          ].filter(Boolean).join("\n"),
         }],
       };
     } catch (e) {
