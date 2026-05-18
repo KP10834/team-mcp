@@ -252,7 +252,7 @@ server.tool(
                 { exists: { field: "requestId" } },
               ],
               must_not: [
-                { match: { requestId: failed_id } },
+                { term: { "requestId.keyword": failed_id } },
               ],
             },
           },
