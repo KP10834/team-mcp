@@ -24,6 +24,7 @@
 | `cross-impact-mcp` | 멀티 레포 변경 영향 분석 |
 | `qa-mcp` | 자동 빌드·테스트 (PM2 기반) |
 | `topic-gen-mcp` | Kafka 토픽 생성 도우미 |
+| `rca-mcp` | 에러 근본 원인 분석 (로그 타임라인 + 온체인 추적) |
 | `workflow-mcp` | git workflow (commit, PR) 자동화 |
 
 각 서버의 상세 설정·도구 목록은 해당 디렉토리의 `README.md` 참조.
