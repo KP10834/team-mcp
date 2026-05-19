@@ -1,7 +1,7 @@
 {
   "name": "@kp10834/team-mcp",
   "version": "1.0.0",
-  "description": "Team-shared MCP servers (EVM, Kafka, Redis, Slack, ELK, Grafana, etc.)",
+  "description": "Team-shared MCP servers (EVM, Kafka, Redis, Slack, Kibana, Grafana, etc.)",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,7 +9,6 @@
     "start:kafka": "node kafka-mcp/index.js",
     "start:redis": "node redis-mcp/index.js",
     "start:slack": "node slack-mcp/index.js",
-    "start:elk": "node elk-mcp/index.js",
     "start:grafana": "node grafana-mcp/index.js",
     "start:kibana": "node kibana-mcp/index.js",
     "start:sqlite": "node sqlite-mcp/index.js",

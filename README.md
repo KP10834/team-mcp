@@ -16,7 +16,6 @@
 | `redis-mcp` | Redis 키·값 조회·관리 |
 | `slack-mcp` | Slack 메시지 발행·조회 |
 | `dooray-mcp` | Dooray 메신저 연동 |
-| `elk-mcp` | Elasticsearch 로그 검색 |
 | `kibana-mcp` | Kibana 대시보드·쿼리 |
 | `grafana-mcp` | Grafana 대시보드·메트릭 |
 | `sqlite-mcp` | 로컬 SQLite 조회 |

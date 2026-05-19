@@ -2,7 +2,7 @@
 
 > Kibana API + Console Proxy를 통한 ES 검색 / Saved Object / 알림 룰 조회
 
-**핵심:** Kibana의 **Console Proxy** (`/api/console/proxy`)를 거쳐 Elasticsearch에 접근하므로, ES 9200 포트가 차단되어 있어도 Kibana URL만 닿으면 동작한다. `elk-mcp`의 우회 버전이라고 보면 됨.
+**핵심:** Kibana의 **Console Proxy** (`/api/console/proxy`)를 거쳐 Elasticsearch에 접근하므로, ES 9200 포트가 차단되어 있어도 Kibana URL만 닿으면 동작한다.
 
 ---
 
@@ -10,9 +10,13 @@
 
 ```json
 "kibana-mcp": {
+  "type": "stdio",
+  "command": "node",
+  "args": ["<team-mcp 경로>/kibana-mcp/index.js"],
   "env": {
-    "KIBANA_URL": "https://kibana.company.com",
-    "KIBANA_API_KEY": "VnVhQ2ZHY0JDZGJrUW…"
+    "KIBANA_URL": "http://<kibana-host>:5601",
+    "KIBANA_API_KEY": "<encoded-api-key>",
+    "KIBANA_COOKIE": "sid=<session-cookie>"
   }
 }
 ```
@@ -20,25 +24,11 @@
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `KIBANA_URL` | | (필수) Kibana 베이스 URL |
-| `KIBANA_API_KEY` | | API Key (base64 인코딩된 `id:api_key`). **권장** |
-| `KIBANA_COOKIE` | | 세션 쿠키 (SSO/Okta 환경 fallback). 형식: `sid=...; ...` |
+| `KIBANA_COOKIE` | | (필수) 세션 쿠키. 형식: `sid=...` |
 
-> API_KEY 또는 COOKIE 중 **하나는 필수**. 둘 다 없으면 서버가 시작되지 않는다.
+### Session Cookie 얻기
 
-### API Key 발급
-
-Kibana UI: **Stack Management → API keys → Create API key**.
-- Role은 최소한 `kibana_admin` 또는 read-only 역할
-- 발급되면 표시되는 `encoded` 값을 그대로 `KIBANA_API_KEY`에 저장
-
-### Session Cookie (SSO 환경)
-
-UI 로그인 → DevTools → Application → Cookies → 도메인의 `sid` 쿠키 복사:
-
-```
-KIBANA_COOKIE=sid=Fe26.2**abc123...
-```
-
+UI 로그인 → DevTools → Application → Cookies → 도메인의 `sid` 쿠키 복사.
 만료(보통 8시간~며칠)되면 다시 복사.
 
 ---
@@ -159,20 +149,6 @@ Data View (인덱스 패턴) 목록.
 
 ---
 
-## elk-mcp vs kibana-mcp
-
-| | `elk-mcp` | `kibana-mcp` |
-|---|---|---|
-| 접근 방식 | ES 9200 직접 호출 | Kibana Console proxy 경유 |
-| 필요한 포트 | ES `9200` (보통 막힘) | Kibana `443/5601` (보통 열림) |
-| 인증 | ES API Key / Basic | Kibana API Key / Session Cookie |
-| Kibana 자체 API | ❌ 안 됨 | ✅ Saved Objects / Alerts 등 가능 |
-| 권장 환경 | dev망 (직접 접근 가능) | prod / 격리망 (UI만 열린 환경) |
-
-같은 ES 클러스터를 두 가지 방법으로 조회 가능. 환경에 맞춰 선택.
-
----
-
 ## 사용 시나리오: ES 9200이 막힌 환경
 
 ```
@@ -184,7 +160,7 @@ Data View (인덱스 패턴) 목록.
    └─→ Elasticsearch:9200       ← 외부 차단
 ```
 
-ES query DSL을 그대로 호출 가능. `elk-mcp` 도구를 그대로 옮겨와도 동작.
+ES query DSL을 그대로 호출 가능.
 
 ---
 
