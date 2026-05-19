@@ -18,11 +18,7 @@
 | `dooray-mcp` | Dooray 메신저 연동 |
 | `kibana-mcp` | Kibana 대시보드·쿼리 |
 | `grafana-mcp` | Grafana 대시보드·메트릭 |
-| `sqlite-mcp` | 로컬 SQLite 조회 |
 | `github-wiki-mcp` | GitHub Wiki 페이지 관리 |
-| `cross-impact-mcp` | 멀티 레포 변경 영향 분석 |
-| `qa-mcp` | 자동 빌드·테스트 (PM2 기반) |
-| `topic-gen-mcp` | Kafka 토픽 생성 도우미 |
 | `rca-mcp` | 에러 근본 원인 분석 (로그 타임라인 + 온체인 추적) |
 | `workflow-mcp` | git workflow (commit, PR) 자동화 |
 
@@ -68,29 +64,6 @@ Node 20+ 권장. `type: "module"` 이므로 ESM 환경.
 }
 ```
 
-또는 npm script 사용:
-
-```json
-{
-  "mcpServers": {
-    "evm": {
-      "command": "npm",
-      "args": ["--prefix", "/absolute/path/to/team-mcp", "run", "start:evm"],
-      "env": { "EVM_RPC_URL": "http://<rpc-host>:8545" }
-    }
-  }
-}
-```
-
----
-
-## 환경변수
-
-각 MCP는 `process.env`로 설정을 받는다. 하드코딩된 secret·연결 정보는 **없다**.
-구체 변수 목록은 해당 디렉토리의 `README.md` 참조.
-
-레포 자체에는 secret을 커밋하지 않는다. 운영 값은 각 사용 환경의 mcp config에 주입.
-
 ---
 
 ## 새 MCP 추가하기
@@ -112,8 +85,3 @@ Node 20+ 권장. `type: "module"` 이므로 ESM 환경.
 
 두 repo는 독립적이며 각자 다른 라이프사이클(setup config vs runtime server)을 갖는다.
 
----
-
-## 라이선스 / 사용 범위
-
-KP10834 팀 내부 사용. PR로 기여 환영.
