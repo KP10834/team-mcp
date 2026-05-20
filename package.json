@@ -1,9 +1,24 @@
 {
-  "name": "@kp10834/team-mcp",
+  "name": "@stableteam/team-mcp",
   "version": "1.0.0",
   "description": "Team-shared MCP servers (EVM, Kafka, Redis, Slack, Kibana, Grafana, etc.)",
   "type": "module",
-  "private": true,
+  "bin": {
+    "team-mcp": "cli.js"
+  },
+  "files": [
+    "cli.js",
+    "evm-mcp/",
+    "kafka-mcp/",
+    "redis-mcp/",
+    "slack-mcp/",
+    "grafana-mcp/",
+    "kibana-mcp/",
+    "dooray-mcp/",
+    "github-wiki-mcp/",
+    "workflow-mcp/",
+    "rca-mcp/"
+  ],
   "scripts": {
     "start:evm": "node evm-mcp/index.js",
     "start:kafka": "node kafka-mcp/index.js",
@@ -11,12 +26,8 @@
     "start:slack": "node slack-mcp/index.js",
     "start:grafana": "node grafana-mcp/index.js",
     "start:kibana": "node kibana-mcp/index.js",
-    "start:sqlite": "node sqlite-mcp/index.js",
     "start:dooray": "node dooray-mcp/index.js",
     "start:github-wiki": "node github-wiki-mcp/index.js",
-    "start:cross-impact": "node cross-impact-mcp/index.js",
-    "start:qa": "node qa-mcp/index.js",
-    "start:topic-gen": "node topic-gen-mcp/index.js",
     "start:workflow": "node workflow-mcp/index.js",
     "start:rca": "node rca-mcp/index.js"
   },

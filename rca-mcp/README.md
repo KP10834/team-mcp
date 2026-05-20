@@ -172,7 +172,7 @@ txHash의 온체인 상태를 한 번에 조회 (receipt + nonce + 잔고 + allo
 
 ## team-claude `/root-cause` 커맨드와 함께 사용
 
-[team-claude](https://github.com/KP10834/team-claude)의 `/root-cause` 커맨드가 이 서버의 도구를 자동으로 호출한다.
+team-claude의 `/root-cause` 커맨드가 이 서버의 도구를 자동으로 호출한다.
 
 ```
 /root-cause abc-123

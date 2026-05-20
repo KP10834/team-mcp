@@ -12,7 +12,7 @@ GitHub Wiki는 본질적으로 `<repo>.wiki.git` 이라는 별도 git 저장소�
 "github-wiki-mcp": {
   "env": {
     "GITHUB_TOKEN": "ghp_xxxx",
-    "WIKI_REPOS": "{\"adapter\":\"StableCoinTF/StableCoinBC_Adapter\",\"docs\":\"StableCoinTF/StableCoinBC_Adapter_Docs\"}",
+    "WIKI_REPOS": "{\"my-project\":\"org/repo\"}",
     "WIKI_CACHE_DIR": "",
     "WIKI_PULL_TTL_SEC": "300"
   }

@@ -18,7 +18,7 @@
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `PROJECT_DIR` | `process.cwd()` | 프로젝트 경로 |
-| `GITHUB_REPO` | `gh repo view`로 자동 감지 | GitHub 레포 (예: `StableCoinTF/StableCoinBC_Adapter`) |
+| `GITHUB_REPO` | `gh repo view`로 자동 감지 | GitHub 레포 (예: `org/repo`) |
 
 > `gh` CLI가 설치되어 있으면 `GITHUB_REPO` 생략 가능.
 
@@ -182,7 +182,7 @@ push + PR 생성. PR 템플릿 자동 적용, 이슈 자동 연결.
 ## PR 생성 완료
 
 PR #51: feat: 계정 중복 체크 기능 추가 #47
-URL: https://github.com/StableCoinTF/StableCoinBC_Adapter/pull/51
+URL: https://github.com/org/repo/pull/51
 base: dev ← feat/issue-47
 closes #47
 ```

@@ -1,0 +1,85 @@
+{
+  "mcpServers": {
+    "evm": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "evm"],
+      "env": {
+        "EVM_RPC_URL": "",
+        "RPC_TIMEOUT_MS": "10000"
+      }
+    },
+    "kafka": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "kafka"],
+      "env": {
+        "KAFKA_BROKERS": ""
+      }
+    },
+    "redis": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "redis"],
+      "env": {
+        "REDIS_HOST": "",
+        "REDIS_PORT": "6379",
+        "REDIS_PASSWORD": ""
+      }
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "",
+        "SLACK_USER_TOKEN": "",
+        "SLACK_DEFAULT_CHANNEL": ""
+      }
+    },
+    "grafana": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "grafana"],
+      "env": {
+        "GRAFANA_URL": "",
+        "GRAFANA_SA_TOKEN": ""
+      }
+    },
+    "kibana": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "kibana"],
+      "env": {
+        "KIBANA_URL": "",
+        "KIBANA_COOKIE": ""
+      }
+    },
+    "dooray": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "dooray"],
+      "env": {
+        "DOORAY_API_URL": "",
+        "DOORAY_TOKEN": "",
+        "DOORAY_DEFAULT_PROJECT_ID": ""
+      }
+    },
+    "github-wiki": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "github-wiki"],
+      "env": {
+        "GITHUB_TOKEN": "",
+        "WIKI_REPOS": ""
+      }
+    },
+    "workflow": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "workflow"],
+      "env": {
+        "GITHUB_REPO": ""
+      }
+    },
+    "rca": {
+      "command": "npx",
+      "args": ["@stableteam/team-mcp", "rca"],
+      "env": {
+        "KIBANA_URL": "",
+        "KIBANA_COOKIE": ""
+      }
+    }
+  }
+}

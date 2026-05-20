@@ -44,8 +44,8 @@ async function esProxy(esPath, method = "GET", body) {
 
 // ─── EVM config ────────────────────────────────────────────────
 const CHAIN_CONFIG = {
-  "11155111": { name: "Sepolia", rpc: process.env.RPC_SEPOLIA || "http://10.225.10.93:8545" },
-  "43113": { name: "Fuji", rpc: process.env.RPC_FUJI || "http://10.225.10.92:9650/ext/bc/C/rpc" },
+  "11155111": { name: "Sepolia", rpc: process.env.RPC_SEPOLIA || "" },
+  "43113": { name: "Fuji", rpc: process.env.RPC_FUJI || "" },
   "56357": { name: "KCP", rpc: process.env.RPC_KCP || "" },
 };
 

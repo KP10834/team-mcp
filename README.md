@@ -1,6 +1,6 @@
 # team-mcp
 
-팀이 공유하는 Claude Code / Cursor용 MCP 서버 모음.
+팀이 공유하는 Claude Code MCP 서버 모음.
 인프라(Kafka, Redis, ELK, Grafana 등)·외부 서비스(Slack, Dooray, GitHub Wiki)·블록체인(EVM)·개발 도구(QA, workflow, cross-impact)에 대한 MCP 통합.
 
 각 서버는 단일 `index.js` + `README.md`로 구성된 stdio MCP. 추가 빌드 단계 없음.
@@ -29,7 +29,7 @@
 ## 설치
 
 ```sh
-git clone https://github.com/KP10834/team-mcp.git
+git clone https://github.com/your-org/team-mcp.git
 cd team-mcp
 npm install
 ```
@@ -80,8 +80,8 @@ Node 20+ 권장. `type: "module"` 이므로 ESM 환경.
 
 ## team-claude와의 관계
 
-[team-claude](https://github.com/KP10834/team-claude) = Claude Code agent/skill/command/rule **설정 템플릿**.
-[team-mcp](https://github.com/KP10834/team-mcp) = Claude Code가 호출하는 **실행 가능한 MCP 서버**.
+team-claude = Claude Code agent/skill/command/rule **설정 템플릿**.
+team-mcp = Claude Code가 호출하는 **실행 가능한 MCP 서버**.
 
 두 repo는 독립적이며 각자 다른 라이프사이클(setup config vs runtime server)을 갖는다.
 

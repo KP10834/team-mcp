@@ -29,7 +29,7 @@ try {
 
 if (!Object.keys(WIKI_REPOS).length) {
   console.error(
-    '[github-wiki-mcp] WIKI_REPOS 필수. 예: WIKI_REPOS=\'{"adapter":"StableCoinTF/StableCoinBC_Adapter"}\'',
+    '[github-wiki-mcp] WIKI_REPOS 필수. 예: WIKI_REPOS=\'{"my-project":"org/repo"}\'',
   );
   process.exit(1);
 }
