@@ -16,7 +16,7 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const MCP_JSON = join(homedir(), ".claude", ".mcp.json");
+const MCP_JSON = join(homedir(), ".claude.json");
 
 const SERVER_DEFS = {
   evm: {
@@ -121,9 +121,12 @@ const SERVER_DEFS = {
 function loadMcpJson() {
   if (!existsSync(MCP_JSON)) return { mcpServers: {} };
   try {
-    return JSON.parse(readFileSync(MCP_JSON, "utf-8"));
-  } catch {
-    return { mcpServers: {} };
+    const data = JSON.parse(readFileSync(MCP_JSON, "utf-8"));
+    if (!data.mcpServers) data.mcpServers = {};
+    return data;
+  } catch (e) {
+    console.error(`✗ ${MCP_JSON} 파싱 실패: ${e.message}`);
+    process.exit(1);
   }
 }
 

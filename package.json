@@ -1,6 +1,6 @@
 {
   "name": "@stableteam/team-mcp",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Team-shared MCP servers (EVM, Kafka, Redis, Slack, Kibana, Grafana, etc.)",
   "type": "module",
   "bin": {
