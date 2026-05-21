@@ -553,7 +553,8 @@ server.tool(
     }
 
     // 커밋 이력 (base 대비)
-    const commits = exec(`git log ${BASE_BRANCH}..HEAD --pretty=format:"%h %s" --no-merges`);
+    const { resolved: baseBranch } = resolveBase();
+    const commits = exec(`git log ${baseBranch}..HEAD --pretty=format:"%h %s" --no-merges`);
     if (commits.ok && commits.output) {
       const commitLines = commits.output.split("\n").filter(Boolean);
       lines.push(`\n### 커밋 (${commitLines.length}개)\n`);

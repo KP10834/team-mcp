@@ -7,7 +7,7 @@ const host = process.env.REDIS_HOST || "localhost";
 const port = parseInt(process.env.REDIS_PORT || "6379", 10);
 const db = parseInt(process.env.REDIS_DB || "0", 10);
 const password = process.env.REDIS_PASSWORD || undefined;
-const keyPrefix = process.env.REDIS_KEY_PREFIX || "bc-adapter:";
+const keyPrefix = process.env.REDIS_KEY_PREFIX || "";
 
 const redis = new Redis({ host, port, db, password, lazyConnect: true });
 await redis.connect();

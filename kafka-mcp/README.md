@@ -15,6 +15,7 @@
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `KAFKA_BROKERS` | `localhost:9092` | 브로커 주소 (쉼표 구분 다중 가능) |
+| `KAFKA_TOPIC_PREFIX` | _(empty)_ | 토픽 필터 프리픽스 (설정 시 해당 프리픽스 토픽을 분류 표시) |
 
 ---
 
@@ -22,7 +23,7 @@
 
 ### `kafka_list_topics`
 
-토픽 목록 조회. `adapter.*` 토픽과 기타를 분류하여 표시.
+토픽 목록 조회. `KAFKA_TOPIC_PREFIX` 설정 시 해당 프리픽스 토픽과 기타를 분류하여 표시.
 
 ```
 "카프카 토픽 목록 보여줘"
@@ -36,16 +37,11 @@
 ```
 ## Kafka 토픽 목록
 
-### Adapter 토픽 (7개)
-- adapter.payment.request
-- adapter.payment.result
-- adapter.withdraw.request
-- adapter.withdraw.result
-- adapter.balance.inquiry
-- adapter.balance.result
-- adapter.account.create
-
-### 기타 (2개)
+- orders.created
+- orders.updated
+- payments.completed
+- payments.failed
+- users.registered
 - __consumer_offsets
 - connect-status
 ```
@@ -57,7 +53,7 @@
 토픽에 JSON 메시지 발행.
 
 ```
-"adapter.payment.request에 이 메시지 발행해줘"
+"orders.created에 이 메시지 발행해줘"
 "payment 테스트 메시지 보내줘"
 ```
 
@@ -72,7 +68,7 @@
 ```
 ## 메시지 발행 완료
 
-토픽: adapter.payment.request
+토픽: orders.created
 파티션: 0
 오프셋: 157
 타임스탬프: 2026-04-20T10:00:00.000Z
@@ -85,7 +81,7 @@
 토픽에서 최근 메시지 읽기. 임시 consumer group 생성 후 자동 삭제.
 
 ```
-"adapter.payment.result 최근 메시지 보여줘"
+"payments.completed 최근 메시지 보여줘"
 "payment 응답 메시지 3개 읽어줘"
 ```
 
@@ -98,20 +94,20 @@
 **출력 예시:**
 
 ```
-## adapter.payment.result 메시지 (2개)
+## payments.completed 메시지 (2개)
 
 ### 메시지 1
 파티션: 0 | 오프셋: 155 | 시각: 2026-04-20T09:58:12Z
 {
-  "requestId": "test-001",
+  "orderId": "order-001",
   "status": "SUCCESS",
-  "txHash": "0xabc123..."
+  "amount": 15000
 }
 
 ### 메시지 2
 파티션: 0 | 오프셋: 156 | 시각: 2026-04-20T09:59:30Z
 {
-  "requestId": "test-002",
+  "orderId": "order-002",
   "status": "FAILED",
   "errorCode": "INSUFFICIENT_BALANCE"
 }
@@ -124,7 +120,7 @@
 토픽의 파티션별 earliest / latest 오프셋 조회.
 
 ```
-"adapter.payment.request 오프셋 확인해줘"
+"orders.created 오프셋 확인해줘"
 "payment 토픽에 메시지 몇 개 쌓여있어?"
 ```
 
@@ -135,7 +131,7 @@
 **출력 예시:**
 
 ```
-## adapter.payment.request 오프셋
+## orders.created 오프셋
 
 | 파티션 | earliest | latest | 메시지 수 |
 |--------|----------|--------|----------|

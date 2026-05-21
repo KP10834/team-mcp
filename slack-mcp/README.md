@@ -11,7 +11,7 @@
   "env": {
     "SLACK_BOT_TOKEN": "xoxb-...",
     "SLACK_USER_TOKEN": "xoxp-...",
-    "SLACK_DEFAULT_CHANNEL": "#bc-adapter-alerts"
+    "SLACK_DEFAULT_CHANNEL": "#alerts"
   }
 }
 ```
@@ -45,7 +45,7 @@ User Token에 부여 (검색용):
 채널/DM/스레드에 메시지 발송.
 
 ```
-"#bc-adapter-alerts 채널에 '배포 완료' 보내줘"
+"#alerts 채널에 '배포 완료' 보내줘"
 "방금 그 스레드(ts: 1700000000.123)에 답글로 '확인했습니다' 달아줘"
 ```
 
@@ -71,7 +71,7 @@ User Token에 부여 (검색용):
 채널의 최근 메시지 조회.
 
 ```
-"#bc-adapter-alerts 최근 메시지 20개 보여줘"
+"#alerts 최근 메시지 20개 보여줘"
 "#deploy 채널 어제 메시지 확인해줘"
 ```
 
@@ -85,7 +85,7 @@ User Token에 부여 (검색용):
 **출력 예시:**
 
 ```
-## #bc-adapter-alerts 최근 메시지 (3개)
+## #alerts 최근 메시지 (3개)
 
 - **2025-05-17 09:21:33** `U0ABCDEF` [2 replies]
   배포 완료: v1.4.2
@@ -103,7 +103,7 @@ User Token에 부여 (검색용):
 특정 스레드의 답글 조회.
 
 ```
-"#bc-adapter-alerts에서 ts 1700000000.123 스레드 답글 보여줘"
+"#alerts에서 ts 1700000000.123 스레드 답글 보여줘"
 ```
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
@@ -115,7 +115,7 @@ User Token에 부여 (검색용):
 **출력 예시:**
 
 ```
-## #bc-adapter-alerts 스레드
+## #alerts 스레드
 
 ### 부모
 - **2025-05-17 09:21:33** `U0ABCDEF` [2 replies]
@@ -134,7 +134,7 @@ User Token에 부여 (검색용):
 
 ```
 "slack에서 'OutOfGas' 검색해줘"
-"in:#bc-adapter-alerts before:2025-05-17 ERROR 검색"
+"in:#alerts before:2025-05-17 ERROR 검색"
 ```
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
@@ -147,9 +147,9 @@ User Token에 부여 (검색용):
 
 ```
 ## 검색 결과 (3/12건)
-_query: `OutOfGas in:#bc-adapter-alerts`_
+_query: `OutOfGas in:#alerts`_
 
-- **2025-05-17 14:02:11** `U0ABCDEF` in #bc-adapter-alerts
+- **2025-05-17 14:02:11** `U0ABCDEF` in #alerts
   withdraw 트랜잭션 실패: OutOfGas (txHash: 0xabc…)
   https://your-workspace.slack.com/archives/C0.../p1747497731000100
 ```
@@ -160,7 +160,7 @@ _query: `OutOfGas in:#bc-adapter-alerts`_
 
 MCP는 **stdio 기반 요청/응답 프로토콜**이라 Slack 이벤트를 실시간 push로 받지는 못한다. 대신:
 
-1. **폴링 방식** — `slack_history`로 알림 채널을 주기적으로 조회 (`"#bc-adapter-alerts 최근 30분 메시지 보여줘"`).
+1. **폴링 방식** — `slack_history`로 알림 채널을 주기적으로 조회 (`"#alerts 최근 30분 메시지 보여줘"`).
 2. **Slack Events API** (별도 구현 필요) — HTTPS endpoint가 필요해서 MCP 범위 밖. n8n / 별도 워커로 받아서 DB나 채널에 적재 후 MCP로 조회.
 
 운영 알림 채널을 `SLACK_DEFAULT_CHANNEL`로 두고 `slack_history`로 확인하는 게 가장 단순한 패턴.

@@ -15,10 +15,12 @@ const servers = {
 
 const name = process.argv[2];
 
-if (!name || !servers[name]) {
+if (name === "setup") {
+  await import("./setup.js");
+} else if (!name || !servers[name]) {
   const list = Object.keys(servers).join(", ");
-  console.error(`Usage: team-mcp <server>\n\nAvailable: ${list}`);
+  console.error(`Usage: team-mcp <server|setup>\n\nServers: ${list}\nSetup:  team-mcp setup [--all | server1 server2 ...]`);
   process.exit(1);
+} else {
+  await import(`./${servers[name]}`);
 }
-
-await import(`./${servers[name]}`);

@@ -46,8 +46,20 @@ async function esProxy(esPath, method = "GET", body) {
 const CHAIN_CONFIG = {
   "11155111": { name: "Sepolia", rpc: process.env.RPC_SEPOLIA || "" },
   "43113": { name: "Fuji", rpc: process.env.RPC_FUJI || "" },
-  "56357": { name: "KCP", rpc: process.env.RPC_KCP || "" },
 };
+
+// Load additional chains from RCA_CHAIN_CONFIG env var (JSON string)
+// Format: { "<chainId>": { "name": "...", "rpc": "..." }, ... }
+if (process.env.RCA_CHAIN_CONFIG) {
+  try {
+    const extra = JSON.parse(process.env.RCA_CHAIN_CONFIG);
+    for (const [id, cfg] of Object.entries(extra)) {
+      CHAIN_CONFIG[id] = { name: cfg.name || id, rpc: cfg.rpc || "" };
+    }
+  } catch (e) {
+    console.error("[rca-mcp] RCA_CHAIN_CONFIG JSON parse error:", e.message);
+  }
+}
 
 const RPC_TIMEOUT = parseInt(process.env.RPC_TIMEOUT_MS || "10000", 10);
 
@@ -72,7 +84,7 @@ const ERC20_ABI = [
 ];
 
 // ─── Shared: source fields & formatting ────────────────────────
-const LOG_INDEX_PATTERN = "s*,w*,l*,m*,d*,a*,t*";
+const LOG_INDEX_PATTERN = process.env.ES_INDEX_PATTERN || "*";
 
 const SOURCE_FIELDS = [
   "@timestamp", "message",
@@ -405,7 +417,7 @@ server.tool(
   "txHash의 온체인 상태를 한 번에 조회 (receipt + nonce + 잔고 + allowance)",
   {
     tx_hash: z.string().describe("트랜잭션 해시"),
-    chain_id: z.string().default("56357").describe("체인 ID (기본: 56357/KCP)"),
+    chain_id: z.string().describe("체인 ID (예: 11155111=Sepolia, 43113=Fuji)"),
     token_address: z.string().optional().describe("ERC20 토큰 주소 (잔액/allowance 조회)"),
     spender_address: z.string().optional().describe("Spender 주소 (기본: tx.to)"),
     rpc_url: z.string().optional().describe("RPC URL 직접 지정 (체인 설정 무시)"),

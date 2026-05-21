@@ -12,7 +12,7 @@
     "REDIS_HOST": "<internal-host>",
     "REDIS_PORT": "6379",
     "REDIS_DB": "0",
-    "REDIS_KEY_PREFIX": "bc-adapter:"
+    "REDIS_KEY_PREFIX": "myapp:"
   }
 }
 ```
@@ -23,7 +23,7 @@
 | `REDIS_PORT` | `6379` | 포트 |
 | `REDIS_DB` | `0` | DB 인덱스 |
 | `REDIS_PASSWORD` | | 비밀번호 |
-| `REDIS_KEY_PREFIX` | `bc-adapter:` | 키 프리픽스 (조회 시 자동 적용) |
+| `REDIS_KEY_PREFIX` | _(empty)_ | 키 프리픽스 (조회 시 자동 적용) |
 
 ---
 
@@ -47,9 +47,9 @@
 ```
 ## Redis 키 목록 (pattern: account:*)
 
-- bc-adapter:account:0x1111...1111
-- bc-adapter:account:0x2222...2222
-- bc-adapter:account:0x3333...3333
+- myapp:account:0x1111...1111
+- myapp:account:0x2222...2222
+- myapp:account:0x3333...3333
 
 총 3개
 ```
@@ -72,7 +72,7 @@
 **출력 예시:**
 
 ```
-## bc-adapter:account:0x1234...
+## myapp:account:0x1234...
 
 타입: hash
 TTL: 3600초
@@ -104,7 +104,7 @@ TTL: 3600초
 ```
 ## 삭제 완료
 
-키: bc-adapter:lock:payment:test-001
+키: myapp:lock:payment:test-001
 ```
 
 ---
@@ -127,7 +127,7 @@ TTL: 3600초
 **출력 예시:**
 
 ```
-## bc-adapter:account:0x1234... TTL
+## myapp:account:0x1234... TTL
 
 남은 시간: 1800초 (30분)
 ```
@@ -152,9 +152,9 @@ TTL: 3600초
 
 | 키 | TTL |
 |----|-----|
-| bc-adapter:lock:payment:req-001 | 28초 |
-| bc-adapter:lock:withdraw:req-002 | 55초 |
-| bc-adapter:lock:nonce:0x1234 | 12초 |
+| myapp:lock:payment:req-001 | 28초 |
+| myapp:lock:withdraw:req-002 | 55초 |
+| myapp:lock:nonce:0x1234 | 12초 |
 ```
 
 ---

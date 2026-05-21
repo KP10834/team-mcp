@@ -29,6 +29,12 @@
 ## 설치
 
 ```sh
+npm i -g @stableteam/team-mcp
+```
+
+또는 로컬 클론:
+
+```sh
 git clone https://github.com/your-org/team-mcp.git
 cd team-mcp
 npm install
@@ -38,26 +44,39 @@ Node 20+ 권장. `type: "module"` 이므로 ESM 환경.
 
 ---
 
-## Claude Code에 등록
+## Claude Code에 등록 (setup)
 
-`~/.claude/mcp.json` 또는 프로젝트 `.claude/settings.local.json`에 다음 형식으로 추가:
+`team-mcp setup`으로 `~/.claude/.mcp.json`에 MCP 서버를 자동 등록한다.
+
+```sh
+# 대화형 — 등록할 서버 선택
+team-mcp setup
+
+# 전체 서버 등록
+team-mcp setup --all
+
+# 특정 서버만 등록
+team-mcp setup evm kibana rca
+```
+
+실행하면:
+1. `~/.claude/.mcp.json`에 선택한 서버가 추가됨
+2. 이미 등록된 서버는 건너뜀 (기존 설정 유지)
+3. 필수 env가 있는 서버는 `<placeholder>`로 채워지므로, 파일을 열어 실제 값으로 교체
+4. Claude Code 재시작하면 반영
+
+### 수동 등록
+
+`setup` 대신 직접 `~/.claude/.mcp.json`을 편집할 수도 있다:
 
 ```json
 {
   "mcpServers": {
-    "evm": {
-      "command": "node",
-      "args": ["/absolute/path/to/team-mcp/evm-mcp/index.js"],
+    "evm-mcp": {
+      "command": "team-mcp",
+      "args": ["evm"],
       "env": {
-        "EVM_RPC_URL": "http://<rpc-host>:8545",
-        "RPC_TIMEOUT_MS": "10000"
-      }
-    },
-    "kafka": {
-      "command": "node",
-      "args": ["/absolute/path/to/team-mcp/kafka-mcp/index.js"],
-      "env": {
-        "KAFKA_BROKERS": "<broker-host>:9092"
+        "EVM_RPC_URL": "http://<rpc-host>:8545"
       }
     }
   }
@@ -78,10 +97,56 @@ Node 20+ 권장. `type: "module"` 이므로 ESM 환경.
 
 ---
 
-## team-claude와의 관계
+## team-claude와 함께 사용하기 (전체 세팅 순서)
 
-team-claude = Claude Code agent/skill/command/rule **설정 템플릿**.
-team-mcp = Claude Code가 호출하는 **실행 가능한 MCP 서버**.
+이 패키지(team-mcp)는 MCP **런타임 서버**이고, [team-claude](https://github.com/KP10834/team-claude)는 Claude Code **설정 템플릿** (agents, skills, commands, rules)이다. 새 프로젝트에서 둘을 함께 쓰려면:
 
-두 repo는 독립적이며 각자 다른 라이프사이클(setup config vs runtime server)을 갖는다.
+```sh
+# ━━━ Step 1. MCP 서버 설치 (글로벌, 1회) ━━━
+npm i -g @stableteam/team-mcp
+
+# ━━━ Step 2. MCP 서버를 Claude Code에 등록 ━━━
+team-mcp setup                    # 대화형 — 필요한 서버 선택
+# team-mcp setup --all            # 전체 등록
+# team-mcp setup evm kibana rca   # 특정 서버만
+
+# → ~/.claude/.mcp.json 에 등록됨
+# → 필수 env(<placeholder>)를 실제 값으로 교체
+
+# ━━━ Step 3. Claude Code 설정 복사 (프로젝트별) ━━━
+cd /path/to/your-project
+npx degit KP10834/team-claude/.claude .claude
+
+# ━━━ Step 4. CLAUDE.md 작성 ━━━
+# CLAUDE.template.md 참고하여 프로젝트 루트에 CLAUDE.md 생성
+# → 빌드 명령, 기술 스택, 아키텍처 등 채우기
+
+# ━━━ Step 5. 도메인 컨벤션 적용 ━━━
+cd .claude/rules/conventions
+mv backend.example.md backend.md       # 사용하는 도메인만
+rm frontend.example.md                 # 안 쓰는 건 삭제
+
+# ━━━ Step 6. Claude Code 재시작 ━━━
+```
+
+### 최종 구조
+
+```
+your-project/
+├── .claude/                    ← team-claude에서 복사 (agents, skills, commands, rules)
+├── CLAUDE.md                   ← 프로젝트별 설정 (빌드 명령, 스택, 컨벤션)
+└── src/
+
+~/.claude/.mcp.json             ← team-mcp setup이 등록 (글로벌, 모든 프로젝트 공유)
+```
+
+### 두 repo의 역할 차이
+
+| | team-mcp (여기) | team-claude |
+|---|---|---|
+| **성격** | 실행되는 MCP 서버 (npm 패키지) | Claude Code 설정 템플릿 |
+| **설치** | `npm i -g` (글로벌 1회) | 프로젝트마다 `.claude/` 복사 |
+| **등록 위치** | `~/.claude/.mcp.json` | 프로젝트 루트 `.claude/` |
+| **업데이트** | `npm update -g @stableteam/team-mcp` | degit 재실행 또는 subtree pull |
+| **공유 범위** | 글로벌 — 모든 프로젝트가 같은 서버 사용 | 프로젝트별 — 각자 커스터마이즈 가능 |
 

@@ -4,6 +4,7 @@ import { Kafka } from 'kafkajs';
 import { z } from 'zod';
 
 const brokers = (process.env.KAFKA_BROKERS || 'localhost:9092').split(',');
+const topicPrefix = process.env.KAFKA_TOPIC_PREFIX || '';
 const kafka = new Kafka({ clientId: 'claude-mcp', brokers });
 
 const server = new McpServer({ name: 'kafka-mcp', version: '1.0.0' });
@@ -14,14 +15,18 @@ server.tool('kafka_list_topics', '토픽 목록 조회', {}, async () => {
   await admin.connect();
   try {
     const topics = await admin.listTopics();
-    const adapterTopics = topics.filter((t) => t.startsWith('adapter.'));
-    const others = topics.filter((t) => !t.startsWith('adapter.'));
-    let text = '## Adapter Topics\n';
-    text += adapterTopics.sort().map((t) => `- ${t}`).join('\n');
-    if (others.length) {
-      text += '\n\n## Other Topics\n';
-      text += others.sort().map((t) => `- ${t}`).join('\n');
+    if (topicPrefix) {
+      const prefixed = topics.filter((t) => t.startsWith(topicPrefix));
+      const others = topics.filter((t) => !t.startsWith(topicPrefix));
+      let text = `## ${topicPrefix}* Topics\n`;
+      text += prefixed.sort().map((t) => `- ${t}`).join('\n');
+      if (others.length) {
+        text += '\n\n## Other Topics\n';
+        text += others.sort().map((t) => `- ${t}`).join('\n');
+      }
+      return { content: [{ type: 'text', text }] };
     }
+    const text = '## Topics\n' + topics.sort().map((t) => `- ${t}`).join('\n');
     return { content: [{ type: 'text', text }] };
   } finally {
     await admin.disconnect();
@@ -33,7 +38,7 @@ server.tool(
   'kafka_publish',
   'Kafka 토픽에 메시지 발행 (JSON, snake_case)',
   {
-    topic: z.string().describe('토픽명 (예: adapter.payment.request)'),
+    topic: z.string().describe('토픽명 (예: orders.created)'),
     message: z.string().describe('JSON 메시지 문자열'),
     key: z.string().optional().describe('메시지 키 (선택)'),
   },

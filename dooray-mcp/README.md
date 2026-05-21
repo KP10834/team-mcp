@@ -235,7 +235,7 @@ Authorization: dooray-api {TOKEN}
 채널에 메시지 발송.
 
 ```
-"#bc-adapter-alerts 채널에 '배포 완료' 보내줘"
+"#alerts 채널에 '배포 완료' 보내줘"
 ```
 
 | 파라미터 | 타입 | 필수 | 기본 | 설명 |
@@ -252,7 +252,7 @@ Authorization: dooray-api {TOKEN}
 채널 최근 메시지 조회.
 
 ```
-"#bc-adapter-alerts 최근 20개 메시지 보여줘"
+"#alerts 최근 20개 메시지 보여줘"
 ```
 
 | 파라미터 | 타입 | 필수 | 기본 | 설명 |
